@@ -1,22 +1,18 @@
 "use client";
-import {
-
-  Sparkles,
-  Text3D,
-  Float,
-  Center,
-} from "@react-three/drei";
+import { Sparkles, Text3D, Float, Center } from "@react-three/drei";
 import { Canvas, useFrame } from "@react-three/fiber";
-import React from "react";
+import React, { useState } from "react";
 import Roboto from "../public/fonts/Roboto.json";
 import * as THREE from "three";
-import { MathUtils } from "three/src/math/MathUtils.js";
 import Overlay from "./Overlay";
+import { text } from "stream/consumers";
 
 export const ThreeDText = () => {
   const textRef = React.useRef<THREE.Mesh>(null!);
+  const meshRef = React.useRef<THREE.MeshStandardMaterial>(null!);
   const [targetPosition, setTargetPosition] = React.useState(0);
   const [targetRotation, setTargetRotation] = React.useState(0);
+  const [isClicked, setIsClicked] = useState(false);
   useFrame(() => {
     if (textRef.current) {
       textRef.current.position.x +=
@@ -25,6 +21,11 @@ export const ThreeDText = () => {
         (targetRotation * THREE.MathUtils.DEG2RAD -
           textRef.current.rotation.y) *
         0.1;
+    }
+
+    if (isClicked) {
+      meshRef.current.color = new THREE.Color(Math.random() * 0xffffff);
+      setIsClicked(false);
     }
   });
 
@@ -39,10 +40,16 @@ export const ThreeDText = () => {
   return (
     <Center>
       <Float>
-        {/* @ts-ignore */}
-        <Text3D position={[0, 0, 0]} font={Roboto} ref={textRef}>
+        <Text3D
+          position={[0, 0, 0]}
+          /* @ts-ignore */
+          font={Roboto}
+          ref={textRef}
+          onPointerDown={() => setIsClicked(true)}
+          onPointerUp={() => setIsClicked(false)}
+        >
           {"[Treja];"}
-          <meshStandardMaterial color="white" wireframe />
+          <meshStandardMaterial color="white" wireframe ref={meshRef} />
         </Text3D>
       </Float>
     </Center>
@@ -56,6 +63,7 @@ const R3F = () => {
       <spotLight position={[10, 10, 10]} angle={0.15} />
       <Sparkles scale={15} count={2000} size={1.5} />
       <ThreeDText />
+
       <Overlay />
     </Canvas>
   );
